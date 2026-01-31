@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SolanaTxPlain — Explain any Solana transaction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --warning: #d29922;
+      --error: #f85149;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    .tagline {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+    .input-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+    }
+    input[type="text"]::placeholder { color: var(--muted); }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    button {
+      padding: 0.75rem 1.25rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .message {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    .message.error {
+      background: rgba(248, 81, 73, 0.15);
+      border: 1px solid var(--error);
+      color: #ff7b72;
+    }
+    .message.loading { color: var(--muted); }
+    .result {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .result section {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .result section:last-child { border-bottom: none; }
+    .result h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin: 0 0 0.5rem 0;
+    }
+    .result .summary { font-size: 1.05rem; }
+    .result .intent {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      background: rgba(88, 166, 255, 0.2);
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+    .result .risk { color: var(--warning); }
+    .result ul {
+      margin: 0;
+      padding-left: 1.25rem;
+      font-size: 0.9rem;
+    }
+    .result li { margin-bottom: 0.25rem; }
+    .result code, .result .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    footer {
+      margin-top: 2.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SolanaTxPlain</h1>
+    <p class="tagline">Paste a Solana transaction hash and get a plain-English explanation.</p>
+
+    <div class="input-row">
+      <input
+        type="text"
+        id="hash"
+        placeholder="e.g. 5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnb..."
+        autocomplete="off"
+      />
+      <button type="button" id="btn">Explain</button>
+    </div>
+
+    <div id="message" class="message" style="display: none;"></div>
+    <div id="result" class="result" style="display: none;"></div>
+
+    <footer>
+      Built for Royal Hackaway v9 · Solana + AI · Data from Solana RPC, explained with Gemini
+    </footer>
+  </div>
+
+  <script>
+    const hashInput = document.getElementById('hash');
+    const btn = document.getElementById('btn');
+    const messageEl = document.getElementById('message');
+    const resultEl = document.getElementById('result');
+
+    function showMessage(text, isError = false) {
+      messageEl.style.display = 'block';
+      messageEl.textContent = text;
+      messageEl.className = 'message' + (isError ? ' error' : ' loading');
+    }
+
+    function hideMessage() {
+      messageEl.style.display = 'none';
+    }
+
+    function showResult(data) {
+      resultEl.style.display = 'block';
+      const w = data.wallet_changes || {};
+      const fee = w.fee_sol != null ? w.fee_sol : '—';
+      const balances = w.balance_changes || [];
+      const tokens = w.token_changes || [];
+
+      let html = '';
+      html += '<section><h3>Summary</h3><p class="summary">' + escapeHtml(data.summary || data.explanation || '—') + '</p></section>';
+      html += '<section><h3>Intent</h3><span class="intent">' + escapeHtml(data.intent || 'unknown') + '</span></section>';
+      html += '<section><h3>Risk</h3><p class="risk">' + escapeHtml(data.risk_note || '—') + '</p></section>';
+      html += '<section><h3>Fee</h3><p class="mono">' + fee + ' SOL</p></section>';
+
+      if (balances.length) {
+        html += '<section><h3>SOL balance changes</h3><ul>';
+        balances.forEach(b => {
+          const c = b.change_sol;
+          const sign = c >= 0 ? '+' : '';
+          html += '<li>' + escapeHtml(b.account) + ' ' + sign + c + ' SOL</li>';
+        });
+        html += '</ul></section>';
+      }
+      if (tokens.length) {
+        html += '<section><h3>Token changes</h3><ul>';
+        tokens.forEach(t => {
+          const sign = t.change >= 0 ? '+' : '';
+          html += '<li>' + escapeHtml(t.mint) + ' ' + sign + t.change + '</li>';
+        });
+        html += '</ul></section>';
+      }
+
+      resultEl.innerHTML = html;
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    async function explain() {
+      const txHash = hashInput.value.trim();
+      if (!txHash) {
+        showMessage('Please enter a transaction hash.', true);
+        return;
+      }
+
+      hideMessage();
+      resultEl.style.display = 'none';
+      btn.disabled = true;
+      showMessage('Fetching transaction and generating explanation…');
+
+      try {
+        const base = window.location.origin;
+        const res = await fetch(base + '/explain', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tx_hash: txHash }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          showMessage(data.detail || res.statusText || 'Request failed', true);
+          return;
+        }
+        hideMessage();
+        showResult(data);
+      } catch (err) {
+        showMessage('Network error: ' + (err.message || 'Could not reach the server.'), true);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    btn.addEventListener('click', explain);
+    hashInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') explain(); });
+  </script>
+</body>
+</html>
