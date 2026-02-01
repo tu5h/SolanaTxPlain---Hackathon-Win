@@ -6,7 +6,7 @@
   <title>SolanaTxPlain — Explain any Solana transaction</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #0d1117;
@@ -33,21 +33,12 @@
       margin: 0 auto;
       padding: 2rem 1.5rem;
     }
-    h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin-bottom: 0.25rem;
-    }
-    .tagline {
-      color: var(--muted);
-      font-size: 0.95rem;
-      margin-bottom: 2rem;
-    }
-    .input-row {
-      display: flex;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-    }
+    h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .tagline { color: var(--muted); font-size: 0.95rem; margin-bottom: 1rem; }
+    .backend-status { font-size: 0.85rem; margin-bottom: 1rem; color: var(--muted); }
+    .backend-status.ok { color: var(--success); }
+    .backend-status.error { color: var(--error); }
+    .input-row { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
     input[type="text"] {
       flex: 1;
       padding: 0.75rem 1rem;
@@ -59,10 +50,10 @@
       color: var(--text);
     }
     input[type="text"]::placeholder { color: var(--muted); }
-    input[type="text"]:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
+    input[type="text"]:focus { outline: none; border-color: var(--accent); }
+    .row-options { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+    label { font-size: 0.9rem; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+    input[type="checkbox"] { accent-color: var(--accent); }
     button {
       padding: 0.75rem 1.25rem;
       font-family: inherit;
@@ -82,12 +73,9 @@
       border-radius: 8px;
       margin-bottom: 1rem;
       font-size: 0.9rem;
+      white-space: pre-wrap;
     }
-    .message.error {
-      background: rgba(248, 81, 73, 0.15);
-      border: 1px solid var(--error);
-      color: #ff7b72;
-    }
+    .message.error { background: rgba(248, 81, 73, 0.15); border: 1px solid var(--error); color: #ff7b72; }
     .message.loading { color: var(--muted); }
     .result {
       background: var(--surface);
@@ -116,45 +104,29 @@
       font-size: 0.85rem;
     }
     .result .risk { color: var(--warning); }
-    .result ul {
-      margin: 0;
-      padding-left: 1.25rem;
-      font-size: 0.9rem;
-    }
+    .result ul { margin: 0; padding-left: 1.25rem; font-size: 0.9rem; }
     .result li { margin-bottom: 0.25rem; }
-    .result code, .result .mono {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-    footer {
-      margin-top: 2.5rem;
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
+    .result code, .result .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--muted); }
+    footer { margin-top: 2rem; font-size: 0.8rem; color: var(--muted); }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>SolanaTxPlain</h1>
-    <p class="tagline">Paste a Solana transaction hash and get a plain-English explanation.</p>
+    <p class="tagline">Paste a Solana transaction hash → get a plain-English explanation (README demo flow).</p>
+    <p id="backendStatus" class="backend-status">Backend: checking…</p>
 
     <div class="input-row">
-      <input
-        type="text"
-        id="hash"
-        placeholder="e.g. 5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnb..."
-        autocomplete="off"
-      />
+      <input type="text" id="hash" placeholder="Transaction hash (e.g. 5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnb...)" autocomplete="off" />
       <button type="button" id="btn">Explain</button>
     </div>
-
+    <div class="row-options">
+      <label><input type="checkbox" id="simpleMode" checked /> Simple mode (beginner-friendly)</label>
+    </div>
     <div id="message" class="message" style="display: none;"></div>
     <div id="result" class="result" style="display: none;"></div>
 
-    <footer>
-      Built for Royal Hackaway v9 · Solana + AI · Data from Solana RPC, explained with Gemini
-    </footer>
+    <footer>Built for Royal Hackaway v9 · Solana + AI + DigitalOcean + OpenRouter</footer>
   </div>
 
   <script>
@@ -162,50 +134,35 @@
     const btn = document.getElementById('btn');
     const messageEl = document.getElementById('message');
     const resultEl = document.getElementById('result');
+    const backendStatusEl = document.getElementById('backendStatus');
+    const simpleModeCheck = document.getElementById('simpleMode');
 
-    function showMessage(text, isError = false) {
+    const port = window.location.port || '';
+    const API_BASE = (port === '3000' || port === '5173') ? 'http://localhost:8000' : window.location.origin;
+
+    (function checkBackend() {
+      if (!window.location.origin || window.location.origin === 'null' || window.location.origin.startsWith('file://')) {
+        backendStatusEl.textContent = 'Open via http://localhost:3000 after starting frontend server (see DEV.md).';
+        backendStatusEl.className = 'backend-status error';
+        return;
+      }
+      fetch(API_BASE + '/health', { method: 'GET' })
+        .then(function(r) {
+          backendStatusEl.textContent = r.ok ? 'Backend: connected' : 'Backend: ' + r.status;
+          backendStatusEl.className = 'backend-status ' + (r.ok ? 'ok' : 'error');
+        })
+        .catch(function() {
+          backendStatusEl.textContent = 'Backend: not connected. Start backend (see DEV.md).';
+          backendStatusEl.className = 'backend-status error';
+        });
+    })();
+
+    function showMessage(text, isError) {
       messageEl.style.display = 'block';
       messageEl.textContent = text;
       messageEl.className = 'message' + (isError ? ' error' : ' loading');
     }
-
-    function hideMessage() {
-      messageEl.style.display = 'none';
-    }
-
-    function showResult(data) {
-      resultEl.style.display = 'block';
-      const w = data.wallet_changes || {};
-      const fee = w.fee_sol != null ? w.fee_sol : '—';
-      const balances = w.balance_changes || [];
-      const tokens = w.token_changes || [];
-
-      let html = '';
-      html += '<section><h3>Summary</h3><p class="summary">' + escapeHtml(data.summary || data.explanation || '—') + '</p></section>';
-      html += '<section><h3>Intent</h3><span class="intent">' + escapeHtml(data.intent || 'unknown') + '</span></section>';
-      html += '<section><h3>Risk</h3><p class="risk">' + escapeHtml(data.risk_note || '—') + '</p></section>';
-      html += '<section><h3>Fee</h3><p class="mono">' + fee + ' SOL</p></section>';
-
-      if (balances.length) {
-        html += '<section><h3>SOL balance changes</h3><ul>';
-        balances.forEach(b => {
-          const c = b.change_sol;
-          const sign = c >= 0 ? '+' : '';
-          html += '<li>' + escapeHtml(b.account) + ' ' + sign + c + ' SOL</li>';
-        });
-        html += '</ul></section>';
-      }
-      if (tokens.length) {
-        html += '<section><h3>Token changes</h3><ul>';
-        tokens.forEach(t => {
-          const sign = t.change >= 0 ? '+' : '';
-          html += '<li>' + escapeHtml(t.mint) + ' ' + sign + t.change + '</li>';
-        });
-        html += '</ul></section>';
-      }
-
-      resultEl.innerHTML = html;
-    }
+    function hideMessage() { messageEl.style.display = 'none'; }
 
     function escapeHtml(s) {
       const div = document.createElement('div');
@@ -213,42 +170,70 @@
       return div.innerHTML;
     }
 
+    function showResult(data) {
+      resultEl.style.display = 'block';
+      const sections = data.sections || {};
+      const w = data.wallet_changes || {};
+      const riskFlags = data.risk_flags || [];
+
+      let html = '';
+
+      html += '<section><h3>Summary</h3><p class="summary">' + escapeHtml(data.summary || '—') + '</p></section>';
+      html += '<section><h3>Intent</h3><span class="intent">' + escapeHtml(data.intent || 'unknown') + '</span></section>';
+      html += '<section><h3>Wallet impact</h3><p>' + escapeHtml((sections.wallet_impact || w.wallet_impact_text || '—')) + '</p></section>';
+      html += '<section><h3>Fees</h3><p class="mono">' + escapeHtml(data.fees || '—') + '</p></section>';
+      html += '<section><h3>Programs used</h3><p>' + escapeHtml(sections.programs_used || '—') + '</p></section>';
+      if (riskFlags.length) {
+        html += '<section><h3>Risk notes</h3><ul class="risk">';
+        riskFlags.forEach(function(r) { html += '<li>' + escapeHtml(r) + '</li>'; });
+        html += '</ul></section>';
+      } else {
+        html += '<section><h3>Risk notes</h3><p class="risk">' + escapeHtml(sections.risk || 'No suspicious activity.') + '</p></section>';
+      }
+      html += '<section><h3>AI explanation</h3><p>' + escapeHtml(data.explanation || '—') + '</p></section>';
+
+      resultEl.innerHTML = html;
+    }
+
+    var inProgress = false;
     async function explain() {
+      if (inProgress) return;
       const txHash = hashInput.value.trim();
       if (!txHash) {
         showMessage('Please enter a transaction hash.', true);
         return;
       }
-
+      inProgress = true;
       hideMessage();
       resultEl.style.display = 'none';
       btn.disabled = true;
       showMessage('Fetching transaction and generating explanation…');
 
       try {
-        const base = window.location.origin;
-        const res = await fetch(base + '/explain', {
+        const res = await fetch(API_BASE + '/explain', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tx_hash: txHash }),
+          body: JSON.stringify({ tx_hash: txHash, simple_mode: simpleModeCheck.checked }),
         });
-        const data = await res.json().catch(() => ({}));
+        const data = await res.json().catch(function() { return {}; });
 
         if (!res.ok) {
-          showMessage(data.detail || res.statusText || 'Request failed', true);
+          const detail = Array.isArray(data.detail) ? data.detail.join(' ') : (data.detail || res.statusText);
+          showMessage(detail, true);
           return;
         }
         hideMessage();
         showResult(data);
       } catch (err) {
-        showMessage('Network error: ' + (err.message || 'Could not reach the server.'), true);
+        showMessage('Network error: ' + (err.message || 'Could not reach server.'), true);
       } finally {
         btn.disabled = false;
+        inProgress = false;
       }
     }
 
     btn.addEventListener('click', explain);
-    hashInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') explain(); });
+    hashInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') explain(); });
   </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-"""Fetch and parse Solana transaction data via public RPC."""
+"""Fetch Solana transaction data via public RPC (README: Feature 1 — Transaction Fetching)."""
 
 import httpx
 
@@ -6,7 +6,11 @@ SOLANA_RPC = "https://api.mainnet-beta.solana.com"
 
 
 async def get_transaction(tx_hash: str) -> dict | None:
-    """Fetch transaction by signature. Returns raw RPC response or None."""
+    """
+    Fetch full transaction by signature.
+    Returns RPC result: { meta, transaction } or None if not found.
+    Data: instructions, accountKeys, logs, token balance changes, pre/post balances, fee.
+    """
     async with httpx.AsyncClient(timeout=30.0) as client:
         resp = await client.post(
             SOLANA_RPC,
@@ -21,6 +25,6 @@ async def get_transaction(tx_hash: str) -> dict | None:
             },
         )
         data = resp.json()
-        if "error" in data:
+        if data.get("error"):
             return None
         return data.get("result")

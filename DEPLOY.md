@@ -1,54 +1,49 @@
-# Run locally & deploy to DigitalOcean
+# Deploy to DigitalOcean (README)
 
-## Run locally
+## Local run (two terminals)
 
-1. **Create a virtualenv and install deps** (from repo root `SolanaTxPlain/`):
+- **Terminal 1 — Backend:** From project root: activate venv, then `python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000`
+- **Terminal 2 — Frontend:** `python -m http.server 3000 --directory frontend`
+- Open **http://localhost:3000** (frontend calls backend at 8000). See [DEV.md](DEV.md).
 
-   ```bash
+---
+
+## One-time setup
+
+1. **Virtualenv and deps** (from project root):
+
+   ```powershell
    python -m venv .venv
-   .venv\Scripts\activate   # Windows
-   # source .venv/bin/activate   # macOS/Linux
-   pip install -r requirements.txt
+   .\.venv\Scripts\Activate.ps1
+   pip install -r backend\requirements.txt
    ```
 
-2. **Set your Gemini API key** (get one at [Google AI Studio](https://aistudio.google.com/apikey)):
-
-   - Copy `.env.example` to `.env`
-   - Set `GEMINI_API_KEY=...` in `.env`
-
-3. **Start the app** (from `SolanaTxPlain/`):
-
-   ```bash
-   uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-4. Open **http://localhost:8000** — paste a Solana mainnet transaction hash and click **Explain**.
+2. **API key:** Copy `.env.example` to `.env` (or `backend/.env`). Set `GEMINI_API_KEY=...` (get key at [Google AI Studio](https://aistudio.google.com/apikey)).
 
 ---
 
-## Deploy to DigitalOcean App Platform
+## DigitalOcean App Platform
 
-1. **Push this repo to GitHub** (only the `SolanaTxPlain` folder or the whole repo).
+1. Push repo to GitHub (include `SolanaTxPlain` folder with `backend/`, `frontend/`, `backend/requirements.txt`).
 
-2. **In DigitalOcean:** Create → Apps → Create App → GitHub → select repo and branch.
+2. DigitalOcean → Create → Apps → GitHub → select repo.
 
-3. **Configure the app:**
+3. Configure:
    - **Type:** Web Service
-   - **Source:** your repo root (where `requirements.txt` and `backend/` live)
-   - **Build command:** `pip install -r requirements.txt`
+   - **Source directory:** root (or folder that contains `backend/`)
+   - **Build command:** `pip install -r backend/requirements.txt` (or `pip install -r requirements.txt` if you put requirements at root)
    - **Run command:** `uvicorn backend.main:app --host 0.0.0.0 --port 8080`
-   - **HTTP port:** 8080 (or whatever you set in run command)
+   - **HTTP port:** 8080
 
-4. **Environment variables:** Add in the DO dashboard:
-   - `GEMINI_API_KEY` = your Gemini API key
+4. **Environment variables:** Add `GEMINI_API_KEY`. Optionally `OPENROUTER_API_KEY` for fallback when Gemini returns 429.
 
-5. **Deploy.** Your app URL will be something like `https://your-app-xxxxx.ondigitalocean.app`.
-
-6. Open the URL — users can paste a transaction hash and get an explanation online.
+5. Deploy. Public URL: e.g. `https://your-app-xxxxx.ondigitalocean.app`.
 
 ---
 
-## Notes
+## API (README)
 
-- The app serves the frontend at `/` and the API at `POST /explain` and `GET /health`.
-- Solana data comes from the public RPC `https://api.mainnet-beta.solana.com`. For heavier use, switch to a dedicated RPC (e.g. Helius) and set its URL in env.
+- **POST /explain** — Input: `{ "tx_hash": "...", "simple_mode": true }`  
+  Output: `{ summary, intent, wallet_changes, fees, risk_flags, explanation }`
+
+- **GET /health** — `{ "status": "ok" }`
