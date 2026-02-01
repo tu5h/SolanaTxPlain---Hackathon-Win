@@ -1,8 +1,8 @@
-# SolanaTxPlain — AI-Powered Solana Transaction Explainer
+# SolanaTxPlain — AI-Powered Solana Transaction Explainer (Hackathon Winner)
 
 https://devpost.com/software/solanatxplain
 
-**Built for Royal Hackaway v9** · Sponsor Tracks: **Solana** · **Gemini** · **OpenRouter**
+**Built for Royal Hackaway v9** · Sponsor Tracks: **Solana** · **Gemini** · **OpenRouter** · **MLH**
 
 ---
 
