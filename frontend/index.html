@@ -18,6 +18,8 @@
       --success: #3fb950;
       --warning: #d29922;
       --error: #f85149;
+      --left-col-width: 320px;
+      --transition-dur: 0.35s;
     }
     * { box-sizing: border-box; }
     body {
@@ -28,22 +30,74 @@
       color: var(--text);
       line-height: 1.5;
     }
-    .container {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem;
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
     }
-    h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .tagline { color: var(--muted); font-size: 0.95rem; margin-bottom: 1rem; }
-    .backend-status { font-size: 0.85rem; margin-bottom: 1rem; color: var(--muted); }
+    .page-header .logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+    .page-header .brand {
+      min-width: 0;
+    }
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.15rem 0; }
+    .page-header .tagline { color: var(--muted); font-size: 0.85rem; margin: 0; }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      transition: grid-template-columns var(--transition-dur) ease;
+      min-height: calc(100vh - 120px);
+    }
+    body.has-result .main-layout {
+      grid-template-columns: var(--left-col-width) 1fr;
+    }
+
+    .panel-left {
+      padding: 1.5rem;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-width: 0;
+    }
+    .panel-right {
+      padding: 1.5rem;
+      min-width: 0;
+      overflow-y: auto;
+      opacity: 0;
+      transition: opacity var(--transition-dur) ease;
+    }
+    body.has-result .panel-right {
+      opacity: 1;
+    }
+    body.has-result .panel-right .result {
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .backend-status { font-size: 0.85rem; color: var(--muted); }
     .backend-status.ok { color: var(--success); }
     .backend-status.error { color: var(--error); }
-    .input-row { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+
+    .input-row { display: flex; flex-direction: column; gap: 0.5rem; }
+    .input-row .row-inner { display: flex; gap: 0.5rem; }
     input[type="text"] {
       flex: 1;
-      padding: 0.75rem 1rem;
+      min-width: 0;
+      padding: 0.65rem 0.85rem;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -51,13 +105,12 @@
     }
     input[type="text"]::placeholder { color: var(--muted); }
     input[type="text"]:focus { outline: none; border-color: var(--accent); }
-    .row-options { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
-    label { font-size: 0.9rem; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+    .row-options label { font-size: 0.85rem; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
     input[type="checkbox"] { accent-color: var(--accent); }
     button {
-      padding: 0.75rem 1.25rem;
+      padding: 0.65rem 1rem;
       font-family: inherit;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 600;
       background: var(--accent);
       color: var(--bg);
@@ -65,18 +118,20 @@
       border-radius: 8px;
       cursor: pointer;
       white-space: nowrap;
+      flex-shrink: 0;
     }
     button:hover { opacity: 0.9; }
     button:disabled { opacity: 0.6; cursor: not-allowed; }
+
     .message {
       padding: 1rem;
       border-radius: 8px;
-      margin-bottom: 1rem;
       font-size: 0.9rem;
       white-space: pre-wrap;
     }
     .message.error { background: rgba(248, 81, 73, 0.15); border: 1px solid var(--error); color: #ff7b72; }
     .message.loading { color: var(--muted); }
+
     .result {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -93,7 +148,13 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--muted);
+      margin: 0 0 0.25rem 0;
+    }
+    .result .section-desc {
+      font-size: 0.8rem;
+      color: var(--muted);
       margin: 0 0 0.5rem 0;
+      line-height: 1.4;
     }
     .result .summary { font-size: 1.05rem; }
     .result .intent {
@@ -104,30 +165,75 @@
       font-size: 0.85rem;
     }
     .result .risk { color: var(--warning); }
+    .result .chain-info { font-size: 0.85rem; color: var(--muted); }
+    .result .chain-info span { margin-right: 1rem; }
+    .result .chain-info a { color: var(--accent); text-decoration: none; }
+    .result .chain-info a:hover { text-decoration: underline; }
     .result ul { margin: 0; padding-left: 1.25rem; font-size: 0.9rem; }
     .result li { margin-bottom: 0.25rem; }
     .result code, .result .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--muted); }
-    footer { margin-top: 2rem; font-size: 0.8rem; color: var(--muted); }
+
+    .page-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .page-footer .logo {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    @media (max-width: 640px) {
+      body.has-result .main-layout {
+        grid-template-columns: 1fr;
+      }
+      body.has-result .panel-left {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>SolanaTxPlain</h1>
-    <p class="tagline">Paste a Solana transaction hash → get a plain-English explanation (README demo flow).</p>
-    <p id="backendStatus" class="backend-status">Backend: checking…</p>
-
-    <div class="input-row">
-      <input type="text" id="hash" placeholder="Transaction hash (e.g. 5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnb...)" autocomplete="off" />
-      <button type="button" id="btn">Explain</button>
+  <header class="page-header">
+    <img src="logo.png" alt="SolanaTxPlain" class="logo" />
+    <div class="brand">
+      <h1>SolanaTxPlain</h1>
+      <p class="tagline">Paste a Solana mainnet transaction hash → see what it did in plain English.</p>
     </div>
-    <div class="row-options">
-      <label><input type="checkbox" id="simpleMode" checked /> Simple mode (beginner-friendly)</label>
-    </div>
-    <div id="message" class="message" style="display: none;"></div>
-    <div id="result" class="result" style="display: none;"></div>
+  </header>
 
-    <footer>Built for Royal Hackaway v9 · Solana + AI + DigitalOcean + OpenRouter</footer>
+  <div class="main-layout">
+    <aside class="panel-left">
+      <p id="backendStatus" class="backend-status">Backend: checking…</p>
+      <div class="input-row">
+        <label for="hash" style="font-size: 0.8rem; color: var(--muted);">Transaction hash</label>
+        <div class="row-inner">
+          <input type="text" id="hash" placeholder="Paste hash here…" autocomplete="off" />
+          <button type="button" id="btn">Explain</button>
+        </div>
+      </div>
+      <div class="row-options">
+        <label><input type="checkbox" id="simpleMode" checked /> Simple mode (beginner-friendly)</label>
+      </div>
+      <div id="message" class="message" style="display: none;"></div>
+    </aside>
+
+    <main class="panel-right">
+      <div id="result" class="result" style="display: none;"></div>
+    </main>
   </div>
+
+  <footer class="page-footer">
+    <img src="logo.png" alt="" class="logo" aria-hidden="true" />
+    <span>Built for Royal Hackaway v9 · Solana + AI + DigitalOcean + OpenRouter</span>
+  </footer>
 
   <script>
     const hashInput = document.getElementById('hash');
@@ -142,7 +248,7 @@
 
     (function checkBackend() {
       if (!window.location.origin || window.location.origin === 'null' || window.location.origin.startsWith('file://')) {
-        backendStatusEl.textContent = 'Open via http://localhost:3000 after starting frontend server (see DEV.md).';
+        backendStatusEl.textContent = 'Open via http://localhost:3000 (see DEV.md).';
         backendStatusEl.className = 'backend-status error';
         return;
       }
@@ -170,35 +276,62 @@
       return div.innerHTML;
     }
 
+    function formatBlockTime(ts) {
+      if (ts == null || ts === undefined) return '';
+      var d = new Date(ts * 1000);
+      return isNaN(d.getTime()) ? '' : d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
     function showResult(data) {
       resultEl.style.display = 'block';
+      document.body.classList.add('has-result');
       const sections = data.sections || {};
       const w = data.wallet_changes || {};
       const riskFlags = data.risk_flags || [];
+      const slot = data.slot;
+      const blockTime = data.block_time;
+      const hasChainInfo = slot != null || (blockTime != null && blockTime !== undefined);
 
       let html = '';
 
-      html += '<section><h3>Summary</h3><p class="summary">' + escapeHtml(data.summary || '—') + '</p></section>';
-      html += '<section><h3>Intent</h3><span class="intent">' + escapeHtml(data.intent || 'unknown') + '</span></section>';
-      html += '<section><h3>Wallet impact</h3><p>' + escapeHtml((sections.wallet_impact || w.wallet_impact_text || '—')) + '</p></section>';
-      html += '<section><h3>Fees</h3><p class="mono">' + escapeHtml(data.fees || '—') + '</p></section>';
-      html += '<section><h3>Programs used</h3><p>' + escapeHtml(sections.programs_used || '—') + '</p></section>';
+      if (hasChainInfo || lastTxHash) {
+        html += '<section class="chain-info"><h3>Chain info</h3>';
+        html += '<p class="section-desc">When this transaction was included on Solana and where you can view it on an explorer.</p><p>';
+        if (slot != null) html += '<span class="mono">Slot: ' + escapeHtml(String(slot)) + '</span>';
+        if (blockTime != null && blockTime !== undefined) {
+          var ft = formatBlockTime(blockTime);
+          if (ft) html += '<span>Time: ' + escapeHtml(ft) + '</span>';
+        }
+        if (lastTxHash) {
+          var solscanUrl = 'https://solscan.io/tx/' + encodeURIComponent(lastTxHash);
+          html += '<span><a href="' + escapeHtml(solscanUrl) + '" target="_blank" rel="noopener">View on Solscan</a></span>';
+        }
+        html += '</p></section>';
+      }
+
+      html += '<section><h3>Summary</h3><p class="section-desc">In one sentence: what this transaction did.</p><p class="summary">' + escapeHtml(data.summary || '—') + '</p></section>';
+      html += '<section><h3>Intent</h3><p class="section-desc">The type of action (e.g. transfer, swap, stake).</p><span class="intent">' + escapeHtml(data.intent || 'unknown') + '</span></section>';
+      html += '<section><h3>Wallet impact</h3><p class="section-desc">How SOL and token balances changed for the accounts involved. Minus means something left the account; plus means something was received.</p><p>' + escapeHtml((sections.wallet_impact || w.wallet_impact_text || '—')) + '</p></section>';
+      html += '<section><h3>Fees</h3><p class="section-desc">The transaction fee paid to the Solana network. This is what keeps the network running; it is usually a tiny amount of SOL.</p><p class="mono">' + escapeHtml(data.fees || '—') + '</p></section>';
+      html += '<section><h3>Programs used</h3><p class="section-desc">Which on-chain programs (apps) were called. For example: System Program for simple transfers, or a swap program for trading.</p><p>' + escapeHtml(sections.programs_used || '—') + '</p></section>';
       if (riskFlags.length) {
-        html += '<section><h3>Risk notes</h3><ul class="risk">';
+        html += '<section><h3>Risk notes</h3><p class="section-desc">Anything unusual or worth double-checking (e.g. unknown programs, very high fees, or approval-style actions).</p><ul class="risk">';
         riskFlags.forEach(function(r) { html += '<li>' + escapeHtml(r) + '</li>'; });
         html += '</ul></section>';
       } else {
-        html += '<section><h3>Risk notes</h3><p class="risk">' + escapeHtml(sections.risk || 'No suspicious activity.') + '</p></section>';
+        html += '<section><h3>Risk notes</h3><p class="section-desc">Anything unusual or worth double-checking (e.g. unknown programs, very high fees, or approval-style actions).</p><p class="risk">' + escapeHtml(sections.risk || 'No suspicious activity.') + '</p></section>';
       }
-      html += '<section><h3>AI explanation</h3><p>' + escapeHtml(data.explanation || '—') + '</p></section>';
+      html += '<section><h3>AI explanation</h3><p class="section-desc">A short plain-English breakdown of what happened and what you can infer from it.</p><p>' + escapeHtml(data.explanation || '—') + '</p></section>';
 
       resultEl.innerHTML = html;
     }
 
     var inProgress = false;
+    var lastTxHash = '';
     async function explain() {
       if (inProgress) return;
       const txHash = hashInput.value.trim();
+      lastTxHash = txHash;
       if (!txHash) {
         showMessage('Please enter a transaction hash.', true);
         return;
@@ -206,6 +339,7 @@
       inProgress = true;
       hideMessage();
       resultEl.style.display = 'none';
+      document.body.classList.remove('has-result');
       btn.disabled = true;
       showMessage('Fetching transaction and generating explanation…');
 

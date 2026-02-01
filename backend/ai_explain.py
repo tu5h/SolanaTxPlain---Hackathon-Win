@@ -129,6 +129,9 @@ def _build_prompt(parsed: dict[str, Any], simple_mode: bool) -> str:
     programs = parsed.get("programs_used") or []
     instruction_types = parsed.get("instruction_types") or []
     log_preview = (parsed.get("log_preview") or "")[:1000]
+    slot = parsed.get("slot")
+    block_time = parsed.get("block_time")
+    when = f"Slot: {slot}. Block time (Unix): {block_time}." if (slot is not None or block_time is not None) else ""
 
     return f"""You are a Solana transaction explainer. {mode}
 
@@ -149,6 +152,7 @@ Transaction data:
 - Token balance changes: {tokens}
 - Programs: {programs[:10]}
 - Instruction types: {instruction_types[:10]}
+{f"- When: {when}" if when else ""}
 - Log snippet:
 {log_preview}
 

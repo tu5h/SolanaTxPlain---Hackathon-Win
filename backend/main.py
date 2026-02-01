@@ -105,7 +105,7 @@ async def explain(req: ExplainRequest):
             raise HTTPException(status_code=429, detail=msg)
         raise HTTPException(status_code=503, detail=msg)
 
-    # README API output: summary, intent, wallet_changes, fees, risk_flags, explanation
+    # README API output: summary, intent, wallet_changes, fees, risk_flags, explanation (+ slot/block_time so we don't miss info)
     return {
         "summary": ai["summary"],
         "intent": ai["intent"],
@@ -118,4 +118,6 @@ async def explain(req: ExplainRequest):
         "risk_flags": ai.get("risk_flags", []),
         "explanation": ai["explanation"],
         "sections": ai.get("sections", {}),
+        "slot": parsed.get("slot"),
+        "block_time": parsed.get("block_time"),
     }

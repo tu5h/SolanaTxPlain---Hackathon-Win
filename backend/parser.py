@@ -78,6 +78,10 @@ def parse_tx(raw: dict) -> dict[str, Any]:
     log_messages = meta.get("logMessages") or []
     log_preview = "\n".join(log_messages[:20])
 
+    # Slot and blockTime from RPC (so we don't miss timing info)
+    slot = raw.get("slot")
+    block_time = raw.get("blockTime")  # Unix timestamp or None
+
     return {
         "sol_balance_change": sol_balance_change,
         "token_balance_changes": token_balance_changes,
@@ -87,6 +91,8 @@ def parse_tx(raw: dict) -> dict[str, Any]:
         "instruction_types": instruction_types,
         "num_instructions": len(instructions),
         "log_preview": log_preview,
+        "slot": slot,
+        "block_time": block_time,
     }
 
 
