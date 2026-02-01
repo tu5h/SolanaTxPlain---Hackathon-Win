@@ -142,6 +142,17 @@ No suspicious contracts detected.
 AI Explanation:
 This transaction routed your swap across a liquidity pool to get the best price.
 
+---
+
+Here you can see the Main page you land on.
+<img width="1596" height="865" alt="image" src="https://github.com/user-attachments/assets/f10db5bd-1c72-4811-88d2-919e404a241c" />
+
+<img width="1450" height="696" alt="image" src="https://github.com/user-attachments/assets/9dc117fa-f036-45ce-94b1-bc0ae1d41a80" />
+
+Here are examples of some AI generated summaries from the live activity tab. 
+<img width="1610" height="897" alt="image" src="https://github.com/user-attachments/assets/b08164a8-29b6-455d-9936-fc14594509c7" />
+
+<img width="1544" height="727" alt="image" src="https://github.com/user-attachments/assets/d096b712-eb1c-4c67-8a3d-5d427f41bbcd" />
 
 ---
 
