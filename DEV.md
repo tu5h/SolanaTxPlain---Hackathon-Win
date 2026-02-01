@@ -9,14 +9,14 @@ Frontend and backend run as **two separate processes**. Run all commands from **
 **Terminal 1** — from project root:
 
 ```powershell
-cd "c:\Users\Tush9\Desktop\cursor projects\SolanaTxPlain\SolanaTxPlain"
+cd "\SolanaTxPlain"
 .\.venv\Scripts\Activate.ps1
 pip install -r backend\requirements.txt
 python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 - API: **http://localhost:8000**
-- Endpoints: `GET /health`, `POST /explain` (body: `{ "tx_hash": "...", "simple_mode": true }`), `GET /docs`
+- Endpoints: `GET /health`, `POST /explain` (body: `{ "tx_hash": "...", "simple_mode": true, "network": "mainnet" | "devnet" }`), `GET /live/stream?wallet=...&network=mainnet|devnet` (SSE), `GET /docs`
 - Set `GEMINI_API_KEY` in `backend/.env` or project root `.env` (copy from `.env.example`).
 
 ---
@@ -43,10 +43,9 @@ python -m http.server 3000 --directory frontend
 
 ---
 
-## Scripts (from project root)
+## Scripts (optional)
 
-- Backend: `.\scripts\run_backend.ps1`
-- Frontend: `.\scripts\run_frontend.ps1`
+If you have a `scripts/` folder: run backend with `.\scripts\run_backend.ps1` and frontend with `.\scripts\run_frontend.ps1` from project root. Otherwise use the commands in sections 1 and 2 above.
 
 ---
 

@@ -1,4 +1,4 @@
-# Deploy to DigitalOcean (README)
+# Deployment
 
 ## Local run (two terminals)
 
@@ -22,28 +22,25 @@
 
 ---
 
-## DigitalOcean App Platform
+## Deploy backend to a host
 
 1. Push repo to GitHub (include `SolanaTxPlain` folder with `backend/`, `frontend/`, `backend/requirements.txt`).
 
-2. DigitalOcean → Create → Apps → GitHub → select repo.
+2. Use any host that runs Python (e.g. Railway, Render, Fly.io, VPS, or your provider):
+   - **Type:** Web service
+   - **Build:** `pip install -r backend/requirements.txt`
+   - **Run:** `uvicorn backend.main:app --host 0.0.0.0 --port $PORT` (use `PORT` from the host; many use 8080)
+   - **Env vars:** `GEMINI_API_KEY`; optionally `OPENROUTER_API_KEY` for fallback when Gemini returns 429.
 
-3. Configure:
-   - **Type:** Web Service
-   - **Source directory:** root (or folder that contains `backend/`)
-   - **Build command:** `pip install -r backend/requirements.txt` (or `pip install -r requirements.txt` if you put requirements at root)
-   - **Run command:** `uvicorn backend.main:app --host 0.0.0.0 --port 8080`
-   - **HTTP port:** 8080
-
-4. **Environment variables:** Add `GEMINI_API_KEY`. Optionally `OPENROUTER_API_KEY` for fallback when Gemini returns 429.
-
-5. Deploy. Public URL: e.g. `https://your-app-xxxxx.ondigitalocean.app`.
+3. Set the frontend’s API base to your deployed backend URL (or serve the frontend from the same origin).
 
 ---
 
 ## API (README)
 
-- **POST /explain** — Input: `{ "tx_hash": "...", "simple_mode": true }`  
-  Output: `{ summary, intent, wallet_changes, fees, risk_flags, explanation }`
+- **POST /explain** — Input: `{ "tx_hash": "...", "simple_mode": true, "network": "mainnet" | "devnet" }`  
+  Output: `{ summary, intent, wallet_changes, fees, risk_flags, explanation, network }`
+
+- **GET /live/stream?wallet=...&network=mainnet|devnet** — SSE stream of live activity (grouped txs + AI explanation)
 
 - **GET /health** — `{ "status": "ok" }`

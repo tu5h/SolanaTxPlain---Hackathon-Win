@@ -70,9 +70,6 @@ Uses real Solana on-chain transactions.
 ## AI Track
 Uses LLM reasoning to interpret structured blockchain data.
 
-## DigitalOcean Track
-Backend API is deployed and live.
-
 ## OpenRouter Track
 Multi-model AI reasoning and fallback.
 
@@ -306,7 +303,7 @@ Shows multimodal AI usage.
 
 Frontend Web App
 ↓
-DigitalOcean Hosted API
+Backend API
 ↓
 Solana Data Fetch Layer
 ↓
@@ -338,7 +335,7 @@ Response JSON
 - Solscan / Helius
 
 ## Hosting
-- DigitalOcean App Platform
+- See [DEPLOY.md](DEPLOY.md) for deployment options.
 
 ## Optional
 - ElevenLabs voice API
@@ -377,20 +374,13 @@ Judge demo steps:
 5. See risk flags
 6. Toggle simple/technical mode
 7. Play voice explanation
-8. Show deployed DigitalOcean endpoint
+8. Show deployed endpoint (see DEPLOY.md)
 
 ---
 
-# 🚀 Deployment (DigitalOcean)
+# 🚀 Deployment
 
-Recommended: DigitalOcean App Platform
-
-Steps:
-1. Push repo to GitHub
-2. Connect DigitalOcean
-3. Deploy backend API
-4. Get public URL
-5. Use in demo
+See [DEPLOY.md](DEPLOY.md) for deployment steps (e.g. push to GitHub, connect your hosting provider, deploy backend, use public URL in demo).
 
 ---
 

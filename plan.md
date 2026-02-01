@@ -1,7 +1,7 @@
 # SolanaTxPlain — Build Plan
 
 Simple step-by-step plan. Start small, add features as you go.  
-Uses: **Gemini AI**, **OpenRouter** (free credits), **DigitalOcean** (free credits).
+Uses: **Gemini AI**, **OpenRouter** (free credits).
 
 ---
 
@@ -136,24 +136,24 @@ Keep prompts short; one Gemini call for summary + intent + risk is enough.
 
 ---
 
-## Phase 7 — Deploy to DigitalOcean
+## Phase 7 — Deploy
 
 **Goal:** API and (optional) frontend live on the internet.
 
 ### Step 7.1 — API deploy
 - Push backend to GitHub.
-- In DigitalOcean App Platform: New App → connect repo → select backend (Python, detect FastAPI).
+- Use any host (Railway, Render, Fly.io, VPS, etc.): connect repo, select Python/FastAPI, set build/run commands (see [DEPLOY.md](DEPLOY.md)).
 - Set env vars: `GEMINI_API_KEY`, and OpenRouter key if used.
-- Deploy; get public URL (e.g. `https://your-api.ondigitalocean.app`).
+- Deploy; get public URL.
 
 ### Step 7.2 — Frontend (if separate)
-- If frontend is static HTML/JS: same app or separate static site; set API URL to your DO API URL.
+- If frontend is static HTML/JS: same app or separate static site; set API URL to your deployed API URL.
 - If you use a simple SPA: build and deploy as static assets or small Node app.
 
 ### Step 7.3 — Test live
 - Use a real tx hash against the live `/explain` endpoint. Confirm Gemini (and OpenRouter if used) work in production.
 
-**Checkpoint:** Demo works end-to-end on DigitalOcean.
+**Checkpoint:** Demo works end-to-end on your host.
 
 ---
 
@@ -178,7 +178,7 @@ Add **one at a time**, only if the core is solid:
 | 4     | Intent + risk note in response |
 | 5     | OpenRouter option using your credits |
 | 6     | Minimal frontend: paste hash → see explanation |
-| 7     | Deployed on DigitalOcean, demo-ready |
+| 7     | Deployed, demo-ready |
 | 8     | Optional: simple/technical, voice, cache, better data |
 
 ---
@@ -188,7 +188,7 @@ Add **one at a time**, only if the core is solid:
 - **Backend:** Python, FastAPI, `httpx`, `google-generativeai`.
 - **Data:** Solana public RPC (then Helius only if needed).
 - **AI:** Gemini first; add OpenRouter when you’re ready.
-- **Hosting:** DigitalOcean App Platform.
+- **Hosting:** Any (see [DEPLOY.md](DEPLOY.md)).
 - **Frontend:** One page + fetch to your API.
 
 Start at Phase 1 and move forward only when each checkpoint works.
